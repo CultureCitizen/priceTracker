@@ -10,35 +10,41 @@ from rest_framework.test import APITestCase
 
 class AdminSiteTests(TestCase):
 
+    # Create users for testing  : admin, user1
     def setUp(self):
         base = get_user_model().objects
         self.client = Client()
         self.admin_user = base.create_superuser(
             email='admin@londonappdev.com',
-            password='passwordAdmin1')
+            password='passwordAdmin1',
+            username='admin')
         self.client.force_login(self.admin_user)
         self.user = base.create_user(
-            email='user@londonappdev.com',
+            email='user1@londonappdev.com',
             password='passwordUser1',
-            name='Test user fullname')
+            username='Test user fullname')
 
     def test_users_listed(self):
         """Test that users are listed"""
-        # this urls are defined in the django documentation
+        # this urls are defined in the django documentation. They map a variable to URL
+        # /admin/core/user/id/
         url = reverse('admin:core_user_changelist')
         res = self.client.get(url)
 
-        self.assertContains(res, self.user.name)
+        self.assertContains(res, self.user.username)
         self.assertContains(res, self.user.email)
 
 
 class EmailVerificationTest(APITestCase):
+    # djoser user management tests
 
-    # endpoints needed
-    register_url = "/api/v1/users/"
-    activate_url = "/api/v1/users/activation/"
-    login_url = "/api/v1/token/login/"
-    user_details_url = "/api/v1/users/"
+    # endpoints for tests
+    register_url = "/auth/users/"
+    activate_url = "/auth/users/activation/"
+    login_url = "/auth/token/login/"
+    user_details_url = "/auth/users/"
+    resend_verification_url = "/auth/users/resend_activation/"
+
     # user infofmation
     user_data = {
         "email": "test@example.com",
