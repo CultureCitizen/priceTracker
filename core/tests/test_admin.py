@@ -7,6 +7,14 @@ from django.core.exceptions import ValidationError
 from rest_framework import status
 from rest_framework.test import APITestCase
 
+import logging
+
+logger = logging.getLogger('django_test')
+logging.disable(logging.NOTSET)
+logger.setLevel(logging.DEBUG)
+
+logger.warning('>>> test_log')
+
 
 class AdminSiteTests(TestCase):
 
@@ -30,6 +38,7 @@ class AdminSiteTests(TestCase):
         # /admin/core/user/id/
         url = reverse('admin:core_user_changelist')
         res = self.client.get(url)
+        logger.warning(">>> list users url:"+url)
 
         self.assertContains(res, self.user.username)
         self.assertContains(res, self.user.email)
@@ -60,6 +69,9 @@ class EmailVerificationTest(APITestCase):
         # register the new user
         response = self.client.post(
             self.register_url, self.user_data, format="json")
+
+        url = self.register_url
+        logger.warning(">>> register user url:" + url)
         # expected response
         self.assertEqual(response.status_code, status.HTTP_201_CREATED)
         # expected one email to be send
@@ -68,8 +80,10 @@ class EmailVerificationTest(APITestCase):
         # parse email to get uid and token
         email_lines = mail.outbox[0].body.splitlines()
         # you can print email to check it
-        # print(mail.outbox[0].subject)
-        # print(mail.outbox[0].body)
+        logger.warning(">>> mail subject: "+mail.outbox[0].subject)
+        logger.warning(">>> mail body:"+mail.outbox[0].body)
+
+        # get the url of the activation link
         activation_link = [l for l in email_lines if "/activate/" in l][0]
         uid, token = activation_link.split("/")[-2:]
 
