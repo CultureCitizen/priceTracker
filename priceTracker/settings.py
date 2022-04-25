@@ -126,11 +126,14 @@ if DEVELOPMENT_MODE is True:
         }
 #   Testing in digital ocean server
     else:
+        pwd = os.getenv("DB_PT", "")
         DATABASES = {
             "default": {
-                "ENGINE": "django.db.backends.postgresql",                
-                "NAME": "priceTracker",
-                "USER": "priceTracker",
+                "ENGINE": "django.db.backends.postgresql",
+                "HOST": "app-b0c0cbba-d5df-4ffb-88b5-5a3a2df1f91a-do-user-7594820-0.b.db.ondigitalocean.com",
+                "NAME": "pt",
+                "USER": "pt",
+                "PASSWORD": pwd,
                 "PORT": 25060,
             }
         }
