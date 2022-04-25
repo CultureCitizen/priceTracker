@@ -21,7 +21,12 @@ from django.core.management.utils import get_random_secret_key
 
 # Added by adelatorre
 #socket.getaddrinfo('localhost', 8080)
+
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
+
+# local development environment?
+DJANGO_LOCAL = os.getenv("DJANGO_LOCAL", "False")
+print("DJANGO_LOCAL=", DJANGO_LOCAL)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -47,9 +52,8 @@ DEVELOPMENT_MODE = True
 
 
 # Added by adelatorre
-ALLOWED_HOSTS = [os.getenv("DJANGO_ALLOWED_HOSTS"),
-                 "127.0.0.1", "localhost"]
-
+ALLOWED_HOSTS = os.getenv("DJANGO_ALLOWED_HOSTS",
+                          "127.0.0.1,localhost").split(",")
 
 # Application definition
 
@@ -108,16 +112,28 @@ AUTH_USER_MODEL = 'core.User'
 
 
 if DEVELOPMENT_MODE is True:
-    DATABASES = {
-        'default': {
-            'ENGINE': 'django.db.backends.postgresql',
-            'HOST': '127.0.0.1',
-            'NAME': 'priceTracker',
-            'USER': 'priceTracker',
-            'PASSWORD': '2022Tracker!',
-            'PORT': 5432,
+    #   Testing in my local machine
+    if DJANGO_LOCAL is True:
+        DATABASES = {
+            'default': {
+                'ENGINE': 'django.db.backends.postgresql',
+                'HOST': '127.0.0.1',
+                'NAME': 'priceTracker',
+                'USER': 'priceTracker',
+                'PASSWORD': '2022Tracker!',
+                'PORT': 5432,
+            }
         }
-    }
+#   Testing in digital ocean server
+    else:
+        DATABASES = {
+            "default": {
+                "ENGINE": "django.db.backends.postgresql",                
+                "NAME": "priceTracker",
+                "USER": "priceTracker",
+                "PORT": 25060,
+            }
+        }
 elif len(sys.argv) > 0 and sys.argv[1] == "collectstatic":
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL is not defined")
