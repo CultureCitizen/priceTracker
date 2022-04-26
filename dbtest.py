@@ -5,6 +5,7 @@ import os
 
 # connect to postgresql database
 DJANGO_LOCAL = os.getenv("DJANGO_LOCAL", "False")
+pwd = os.getenv("DB_PT", "")
 print("DJANGO_LOCAL=", DJANGO_LOCAL)
 
 try:
@@ -15,13 +16,12 @@ try:
             'HOST': '127.0.0.1',
             'NAME': 'priceTracker',
             'USER': 'priceTracker',
-            'PASSWORD': '2022Tracker!',
             'PORT': 5432,
             'SSLMODE': 'allow',
+            'PASSWORD': pwd,
         }
     else:
-        print("eneter password")
-        pwd = input()
+        #   Testing in digital ocean server
         db = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
