@@ -110,7 +110,12 @@ AUTH_USER_MODEL = 'core.User'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
+pghost = os.getenv("PGHOST", "")
+pgport = os.getenv("PGPORT", "")
+dburl = os.getenv("DATABASE_URL", "")
+pgdatabase = os.getenv("PGDATABASE", "")
 pwd = os.getenv("DB_PT", "")
+
 if DEVELOPMENT_MODE is True:
     #   Testing in my local machine
     if DJANGO_LOCAL is True:
@@ -126,6 +131,7 @@ if DEVELOPMENT_MODE is True:
         }
 #   Testing in digital ocean server
     else:
+        print("DATABASE_URL=", dburl)
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
