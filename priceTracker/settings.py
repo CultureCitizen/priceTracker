@@ -110,7 +110,7 @@ AUTH_USER_MODEL = 'core.User'
 # Database
 # https://docs.djangoproject.com/en/4.0/ref/settings/#databases
 
-
+pwd = os.getenv("DB_PT", "")
 if DEVELOPMENT_MODE is True:
     #   Testing in my local machine
     if DJANGO_LOCAL is True:
@@ -120,13 +120,12 @@ if DEVELOPMENT_MODE is True:
                 'HOST': '127.0.0.1',
                 'NAME': 'priceTracker',
                 'USER': 'priceTracker',
-                'PASSWORD': '2022Tracker!',
+                'PASSWORD': pwd,
                 'PORT': 5432,
             }
         }
 #   Testing in digital ocean server
     else:
-        pwd = os.getenv("DB_PT", "")
         DATABASES = {
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
@@ -135,6 +134,7 @@ if DEVELOPMENT_MODE is True:
                 "USER": "pt",
                 "PASSWORD": pwd,
                 "PORT": 25060,
+                "OPTIONS": {'sslmode': 'require'},
             }
         }
 elif len(sys.argv) > 0 and sys.argv[1] == "collectstatic":

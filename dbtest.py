@@ -5,6 +5,7 @@ import os
 
 # connect to postgresql database
 DJANGO_LOCAL = os.getenv("DJANGO_LOCAL", "False")
+print("DJANGO_LOCAL=", DJANGO_LOCAL)
 
 try:
     #   Testing in my local machine
@@ -16,6 +17,7 @@ try:
             'USER': 'priceTracker',
             'PASSWORD': '2022Tracker!',
             'PORT': 5432,
+            'SSLMODE': 'allow',
         }
     else:
         print("eneter password")
@@ -24,14 +26,16 @@ try:
             "default": {
                 "ENGINE": "django.db.backends.postgresql",
                 "HOST": "app-b0c0cbba-d5df-4ffb-88b5-5a3a2df1f91a-do-user-7594820-0.b.db.ondigitalocean.com",
+                "PORT": 25060,
                 "NAME": "pt",
                 "USER": "pt",
                 "PASSWORD": pwd,
-                "PORT": 25060,
+                "SSLMODE": 'require',
             }
         }
     conn = pg.connect(host=db["HOST"], dbname=db["NAME"], user=db["USER"],
-                      password=db["PASSWORD"], port=db["PORT"])
+                      password=db["PASSWORD"], port=db["PORT"],
+                      sslmode=db["SSLMODE"])
 
     print(conn)
     # Create a cursor to perform database operations
