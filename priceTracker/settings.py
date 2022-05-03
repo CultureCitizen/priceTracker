@@ -23,10 +23,10 @@ from django.core.management.utils import get_random_secret_key
 #socket.getaddrinfo('localhost', 8080)
 
 DEVELOPMENT_MODE = os.getenv("DEVELOPMENT_MODE", "False") == "True"
-
+print("DEVELOPMENT_MODE:", DEVELOPMENT_MODE)
 # local development environment?
 DJANGO_LOCAL = os.getenv("DJANGO_LOCAL", "False")
-print("DJANGO_LOCAL=", DJANGO_LOCAL)
+print("DJANGO_LOCAL:", DJANGO_LOCAL)
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
 BASE_DIR = Path(__file__).resolve().parent.parent
@@ -117,9 +117,10 @@ dburl = os.getenv("DATABASE_URL", "")
 pgdatabase = os.getenv("PGDATABASE", "")
 pwd = os.getenv("DB_PT", "")
 
-if DEVELOPMENT_MODE is True:
+if str(DEVELOPMENT_MODE) == "True":
     #   Testing in my local machine
-    if DJANGO_LOCAL is True:
+    if str(DJANGO_LOCAL) == "True":
+        print("development. local")
         DATABASES = {
             'default': {
                 'ENGINE': 'django.db.backends.postgresql',
@@ -132,6 +133,7 @@ if DEVELOPMENT_MODE is True:
         }
 #   Testing in digital ocean server
     else:
+        print("development. cloud")
         print("DATABASE_URL=", dburl)
         DATABASES = {
             "default": {
@@ -145,11 +147,14 @@ if DEVELOPMENT_MODE is True:
             }
         }
 elif len(sys.argv) > 0 and sys.argv[1] == "collectstatic":
+    print("production")
     if os.getenv("DATABASE_URL", None) is None:
         raise Exception("DATABASE_URL is not defined")
     DATABASES = {
         "default": dj_database_url.parse(os.environ.get("DATABSE_URL")),
     }
+else:
+    print("upps")
 
 # Password validation
 # https://docs.djangoproject.com/en/4.0/ref/settings/#auth-password-validators
@@ -182,11 +187,11 @@ USE_TZ = True
 
 PARLER_LANGUAGES = {
     None: (
-        {'code', 'en'},
-        {'code', 'es'},
+        {'code': 'en', },
+        {'code': 'es', },
     ),
     'default': {
-        'fallback': 'en',
+        'fallbacks': 'en',
         'hide_untranslated': False,
     }
 }
