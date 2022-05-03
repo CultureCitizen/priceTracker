@@ -77,13 +77,30 @@ class ActivityLog(models.Model):
 
 
 class Activity(TranslatableModel):
+    name_en = models.CharField(max_length=30)
     translations = TranslatedFields(
-        activity=models.CharField(max_length=30)
+        name=models.CharField(max_length=30)
     )
     points = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.activity}:{self.points}'
+
+    def save_model(self, request, obj, form, change):    
+        lang = self.get_current_language()
+
+        if obj.id == None:
+            obj.created_by = request.user
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+            super().save_model(request, obj, form, change)
+        else:
+            obj.updated_by = request.user
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+
+            super().save_model(request, obj, form, change)
+
 
 # ===============================================================================
 # Configuration
@@ -169,13 +186,22 @@ class UnitType(TranslatableModel):
 
 
 class ResourceUsage(TranslatableModel):
-    """Resource usage"""
+    """Resource usage
+        E.g Residential, Commercial, Industrial
+    """
+    name_en = models.CharField(max_length=20)
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
 
     def __str__(self):
         return self.name
+
+    def save_model(self, request, obj, form, change):
+        if obj.id == None:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
 
 # ===============================================================================
 # Catalogs
@@ -259,7 +285,13 @@ class Food(TranslatableModel):
 
     def __str__(self):
         return f'{self.name} ({self.food_storage.name})'
-
+    
+    def save_model(self, request, obj, form, change):
+        if obj.id == None:
+            obj.created_by = request.user
+        else:
+            obj.updated_by = request.user
+    
 
 class Medicine(TranslatableModel):
     """Medicine"""
@@ -287,16 +319,15 @@ class Medicine(TranslatableModel):
         return self.name
 
     def save_model(self, request, obj, form, change):
+        lang = self.get_current_language()
+
         if obj.id == None:
             obj.created_by = request.user
-            obj.name_en = obj.translations.name
-            lang = self.get_current_language()
             if lang == 'en':
                 obj.name = obj.translations.name
             super().save_model(request, obj, form, change)
         else:
             obj.updated_by = request.user
-            lang = self.get_current_language()
             if lang == 'en':
                 obj.name = obj.translations.name
 
