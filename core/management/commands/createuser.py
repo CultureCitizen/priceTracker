@@ -6,7 +6,7 @@ from django.contrib.auth import get_user_model
 from django.conf import settings
 
 class Command(BaseCommand):
-    """Django command to pause execution until database is available"""
+    """Create a user from the command line and activate it."""
 
     def handle(self, *args, **options):
         from django.contrib.auth import get_user_model

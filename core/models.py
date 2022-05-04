@@ -84,7 +84,7 @@ class Activity(TranslatableModel):
     points = models.IntegerField(default=0)
 
     def __str__(self):
-        return f'{self.activity}:{self.points}'
+        return f'{self.name_en}:{self.points}'
 
     def save_model(self, request, obj, form, change):    
         lang = self.get_current_language()
@@ -106,9 +106,22 @@ class Activity(TranslatableModel):
 # Configuration
 # ===============================================================================
 
+class Language(models.Model):
+    iso_code = models.CharField(max_length=2)
+    name_en = models.CharField(max_length=30)
+    translations = TranslatedFields(
+        name=models.CharField(max_length=30),
+    )
+
+    def __str__(self):
+        return f'{self.iso_code}:{self.name_en}'
+
 
 class Area(TranslatableModel):
-    """Price Area"""
+    """Price Area
+    E.g Food , transport , services , etc"""
+    code = models.CharField(max_length=10, unique=True)
+    name_en = models.CharField(max_length=30)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -122,6 +135,7 @@ class Category(TranslatableModel):
     area = models.ForeignKey(
         Area, on_delete=models.RESTRICT, related_name='categories')
 
+    name_en = models.CharField(max_length=30)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -146,7 +160,9 @@ class CountryCategory(TranslatableModel):
 
 
 class HouseType(TranslatableModel):
-    """Home type"""
+    """Home type
+    E.g low-rise appartment, high-rise appartment, duplex , house , etc"""
+    codee = models.CharField(max_length=10, unique=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -156,7 +172,8 @@ class HouseType(TranslatableModel):
 
 
 class HousePriceSource(TranslatableModel):
-    """House price source"""
+    """House price source:
+    E.g. actual / exptected """
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
@@ -166,7 +183,9 @@ class HousePriceSource(TranslatableModel):
 
 
 class PriceType(TranslatableModel):
-    """Price type"""
+    """Price type
+    producer sale, wholesale buy, wholesale sale, retail buy , retail sale"""
+    code = models.CharField(max_length=10, unique=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=10),
     )
@@ -176,7 +195,9 @@ class PriceType(TranslatableModel):
 
 
 class UnitType(TranslatableModel):
-    """Unit type"""
+    """Unit type:
+    length, area, energy , volume, weight, etc"""
+    name_en = models.CharField(max_length=20)
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
@@ -187,7 +208,7 @@ class UnitType(TranslatableModel):
 
 class ResourceUsage(TranslatableModel):
     """Resource usage
-        E.g Residential, Commercial, Industrial
+        E.g Government, Residential, Commercial, Industrial
     """
     name_en = models.CharField(max_length=20)
     translations = TranslatedFields(
@@ -238,6 +259,9 @@ class Currency(TranslatableModel):
 class Country(TranslatableModel):
     """Country"""
     iso_code = models.CharField(max_length=2, unique=True)
+    name_en = models.CharField(max_length=30)
+    language = models.ForeignKey(Language, on_delete=models.RESTRICT, related_name='countries')
+    
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )

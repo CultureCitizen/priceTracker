@@ -29,6 +29,10 @@ class ActivityAdmin(TranslatableAdmin):
     list_display = ['name_en', 'points']
     search_fields = ['name_en',]
 
+class AreaAdmin(TranslatableAdmin):
+    list_display = ['name_en', 'points']
+    search_fields = ['name_en',]
+
 
 # The model.User class is displayed using the UserAdmin class
 admin.site.register(models.User, UserAdmin)
