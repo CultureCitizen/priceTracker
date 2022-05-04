@@ -106,7 +106,7 @@ class Activity(TranslatableModel):
 # Configuration
 # ===============================================================================
 
-class Language(models.Model):
+class Language(TranslatableModel):
     iso_code = models.CharField(max_length=2)
     name_en = models.CharField(max_length=30)
     translations = TranslatedFields(
@@ -162,7 +162,7 @@ class CountryCategory(TranslatableModel):
 class HouseType(TranslatableModel):
     """Home type
     E.g low-rise appartment, high-rise appartment, duplex , house , etc"""
-    codee = models.CharField(max_length=10, unique=True)
+    code = models.CharField(max_length=10, unique=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -261,7 +261,7 @@ class Country(TranslatableModel):
     iso_code = models.CharField(max_length=2, unique=True)
     name_en = models.CharField(max_length=30)
     language = models.ForeignKey(Language, on_delete=models.RESTRICT, related_name='countries')
-    
+
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
