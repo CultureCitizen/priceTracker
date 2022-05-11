@@ -21,7 +21,7 @@ class UserManager(BaseUserManager):
             # raises ValidationError
             validate_email(email)
 
-        if not "username" in extra_fields :
+        if not "username" in extra_fields:
             extra_fields['username'] = email
         user = self.model(email=self.normalize_email(email), **extra_fields)
         user.set_password(password)
@@ -30,7 +30,7 @@ class UserManager(BaseUserManager):
 
     def create_superuser(self, email, password, **extra_fields):
         """Creates and saves a new super user"""
-        if not "username" in extra_fields :
+        if not "username" in extra_fields:
             extra_fields['username'] = email
         user = self.create_user(email, password, **extra_fields)
         user.username = email
@@ -50,10 +50,10 @@ class User(AbstractBaseUser, PermissionsMixin):
     is_active = models.BooleanField(default=False)
     is_staff = models.BooleanField(default=False)
     is_deleted = models.BooleanField(default=False)
-    #profile data
+    # profile data
     image = models.ImageField(default='default.jpg', upload_to='profile_pics')
     points = models.IntegerField(default=0)
-    sex = models.CharField(max_length=1,null=True)
+    sex = models.CharField(max_length=1, null=True)
     birth_year = models.IntegerField(null=True)
     created_at = models.DateTimeField(
         auto_now_add=True)
@@ -77,16 +77,18 @@ class ActivityLog(models.Model):
 
 
 class Activity(TranslatableModel):
-    name_en = models.CharField(max_length=30)
+    code = models.CharField(max_length=30)
     translations = TranslatedFields(
         name=models.CharField(max_length=30)
     )
     points = models.IntegerField(default=0)
+    max_per_day = models.IntegerField(default=0)
+    max_per_week = models.IntegerField(default=0)
 
     def __str__(self):
         return f'{self.name_en}:{self.points}'
 
-    def save_model(self, request, obj, form, change):    
+    def save_model(self, request, obj, form, change):
         lang = self.get_current_language()
 
         if obj.id == None:
@@ -106,9 +108,11 @@ class Activity(TranslatableModel):
 # Configuration
 # ===============================================================================
 
-class Language(TranslatableModel):
+
+class AppLanguage(TranslatableModel):
     iso_code = models.CharField(max_length=2)
-    name_en = models.CharField(max_length=30)
+    name_en = models.CharField(max_length=30, blank=True, default='')
+    activated = models.BooleanField(default=False)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -116,12 +120,52 @@ class Language(TranslatableModel):
     def __str__(self):
         return f'{self.iso_code}:{self.name_en}'
 
+    def save_model(self, request, obj, form, change):
+        lang = self.get_current_language()
+
+        if obj.id == None:
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+            super().save_model(request, obj, form, change)
+        else:
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+
+            super().save_model(request, obj, form, change)
+
+
+class Country(TranslatableModel):
+    """Country"""
+    iso_code = models.CharField(max_length=2, unique=True)
+    name_en = models.CharField(max_length=30, blank=True, default='')
+    language = models.ForeignKey(
+        AppLanguage, on_delete=models.RESTRICT, related_name='countries')
+
+    translations = TranslatedFields(
+        name=models.CharField(max_length=30),
+    )
+
+    def __str__(self):
+        return self.name
+
+    def save_model(self, request, obj, form, change):
+        lang = self.get_current_language()
+
+        if obj.id == None:
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+            super().save_model(request, obj, form, change)
+        else:
+            if lang == 'en':
+                obj.name_en = obj.translations.name
+
+            super().save_model(request, obj, form, change)
+
 
 class Area(TranslatableModel):
     """Price Area
     E.g Food , transport , services , etc"""
     code = models.CharField(max_length=10, unique=True)
-    name_en = models.CharField(max_length=30)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -135,7 +179,7 @@ class Category(TranslatableModel):
     area = models.ForeignKey(
         Area, on_delete=models.RESTRICT, related_name='categories')
 
-    name_en = models.CharField(max_length=30)
+    code = models.CharField(max_length=20, unique=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -145,6 +189,8 @@ class Category(TranslatableModel):
 
 
 class PriceItem(models.Model):
+    """The specific class name of price items. For example : food,gasoline, electricity, etc"""
+    code = models.CharField(max_length=10, unique=True)
     name_en = models.CharField(max_length=30)
 
 
@@ -174,6 +220,7 @@ class HouseType(TranslatableModel):
 class HousePriceSource(TranslatableModel):
     """House price source:
     E.g. actual / exptected """
+    code = models.CharField(max_length=10, unique=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
@@ -197,7 +244,7 @@ class PriceType(TranslatableModel):
 class UnitType(TranslatableModel):
     """Unit type:
     length, area, energy , volume, weight, etc"""
-    name_en = models.CharField(max_length=20)
+    code = models.CharField(max_length=20, unique=True, blank=False)
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
@@ -210,19 +257,13 @@ class ResourceUsage(TranslatableModel):
     """Resource usage
         E.g Government, Residential, Commercial, Industrial
     """
-    name_en = models.CharField(max_length=20)
+    code = models.CharField(max_length=20, unique=True, blank=False)
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
 
     def __str__(self):
         return self.name
-
-    def save_model(self, request, obj, form, change):
-        if obj.id == None:
-            obj.created_by = request.user
-        else:
-            obj.updated_by = request.user
 
 # ===============================================================================
 # Catalogs
@@ -254,20 +295,6 @@ class Currency(TranslatableModel):
     translations = TranslatedFields(
         name=models.CharField(max_length=20),
     )
-
-
-class Country(TranslatableModel):
-    """Country"""
-    iso_code = models.CharField(max_length=2, unique=True)
-    name_en = models.CharField(max_length=30)
-    language = models.ForeignKey(Language, on_delete=models.RESTRICT, related_name='countries')
-
-    translations = TranslatedFields(
-        name=models.CharField(max_length=30),
-    )
-
-    def __str__(self):
-        return self.name
 
 
 class FoodStorage(TranslatableModel):
@@ -309,13 +336,13 @@ class Food(TranslatableModel):
 
     def __str__(self):
         return f'{self.name} ({self.food_storage.name})'
-    
+
     def save_model(self, request, obj, form, change):
         if obj.id == None:
             obj.created_by = request.user
         else:
             obj.updated_by = request.user
-    
+
 
 class Medicine(TranslatableModel):
     """Medicine"""
@@ -416,6 +443,7 @@ class City(TranslatableModel):
 
 class Unit(TranslatableModel):
     iso_code = models.CharField(max_length=5, unique=True)
+    name_en = models.CharField(max_length=30, blank=True, null=True)
     translations = TranslatedFields(
         name=models.CharField(max_length=30),
     )
@@ -428,12 +456,12 @@ class Unit(TranslatableModel):
 
 class UnitConv(models.Model):
     unit = models.ForeignKey(Unit, on_delete=models.RESTRICT)
-    conv_unit = models.ForeignKey(
-        Unit, on_delete=models.RESTRICT, related_name='conv_unit')
+    to_unit = models.ForeignKey(
+        Unit, on_delete=models.RESTRICT, related_name='to_unit')
     conv_factor = models.FloatField()
 
     def __str__(self):
-        return f'{self.unit.name}:{self.conv_unit.name}:{self.conv_factor}'
+        return f'{self.unit.name}:{self.to_unit.name}:{self.conv_factor}'
 
 
 class Vendor(models.Model):
